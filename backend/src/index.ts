@@ -11,6 +11,26 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 app.use(express.json());
 
+// Request logger — proti request er method, path, status, time print kore
+app.use((req: Request, res: Response, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const ms = Date.now() - start;
+    const status = res.statusCode;
+    const color =
+      status >= 500 ? "\x1b[31m" : status >= 400 ? "\x1b[33m" : status >= 300 ? "\x1b[36m" : "\x1b[32m";
+    const reset = "\x1b[0m";
+    const time = new Date().toLocaleTimeString();
+    const query = Object.keys(req.query).length
+      ? " " + JSON.stringify(req.query)
+      : "";
+    console.log(
+      `[${time}] ${req.method.padEnd(4)} ${color}${status}${reset} ${req.originalUrl}${query} - ${ms}ms`
+    );
+  });
+  next();
+});
+
 const DATA_DIR = join(__dirname, "..", "data", "surahs");
 
 console.log("Loading Quran index from", DATA_DIR);

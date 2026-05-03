@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { Amiri, Amiri_Quran, Scheherazade_New } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/theme";
 import { SettingsProvider } from "@/lib/settings";
 import { UIProvider } from "@/lib/ui";
 import { BookmarksProvider } from "@/lib/bookmarks";
 import { ToastProvider, Toaster } from "@/lib/toast";
+import { TopHeader } from "@/components/TopHeader";
 import { IconSidebar } from "@/components/IconSidebar";
 import { SurahSidebar, MobileSurahDrawer } from "@/components/SurahSidebar";
-import { MobileTopbar } from "@/components/MobileTopbar";
-import { FontSettingsPanel } from "@/components/FontSettingsPanel";
+import { SettingsRail } from "@/components/SettingsRail";
+import { AudioPlayerBar } from "@/components/AudioPlayerBar";
 import { SearchModal } from "@/components/SearchModal";
-import { BookmarksModal } from "@/components/BookmarksModal";
-import { AudioModal } from "@/components/AudioModal";
 
 const amiri = Amiri({
   variable: "--font-amiri",
@@ -46,31 +46,33 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="light"
       className={`${amiri.variable} ${amiriQuran.variable} ${scheherazade.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <UIProvider>
-          <SettingsProvider>
-            <BookmarksProvider>
-              <ToastProvider>
-                <div className="flex min-h-screen">
-                  <IconSidebar />
-                  <SurahSidebar />
-                  <main className="flex min-w-0 flex-1 flex-col">
-                    <MobileTopbar />
-                    <div className="flex-1">{children}</div>
-                  </main>
-                </div>
-                <MobileSurahDrawer />
-                <FontSettingsPanel />
-                <SearchModal />
-                <BookmarksModal />
-                <AudioModal />
-                <Toaster />
-              </ToastProvider>
-            </BookmarksProvider>
-          </SettingsProvider>
-        </UIProvider>
+        <ThemeProvider>
+          <UIProvider>
+            <SettingsProvider>
+              <BookmarksProvider>
+                <ToastProvider>
+                  <div className="flex min-h-screen flex-col">
+                    <TopHeader />
+                    <div className="flex flex-1">
+                      <IconSidebar />
+                      <SurahSidebar />
+                      <main className="min-w-0 flex-1">{children}</main>
+                      <SettingsRail />
+                    </div>
+                  </div>
+                  <MobileSurahDrawer />
+                  <SearchModal />
+                  <AudioPlayerBar />
+                  <Toaster />
+                </ToastProvider>
+              </BookmarksProvider>
+            </SettingsProvider>
+          </UIProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

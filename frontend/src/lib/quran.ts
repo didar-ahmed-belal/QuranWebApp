@@ -2,8 +2,9 @@ import type { SurahFull } from "./types";
 
 const ALQURAN_API = "https://api.alquran.cloud/v1";
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+export const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000"
+).replace(/\/+$/, "");
 
 interface AlQuranResponse {
   data: Array<{
@@ -41,8 +42,28 @@ function transform(json: AlQuranResponse, num: number): SurahFull {
  * (populated by scripts/prefetch.ts). Falls back to AlQuran Cloud
  * with retry-with-backoff.
  */
+/**
+ * Fetch a full surah.
+ * Order:
+ *   1) Backend (so logs fire + central source)
+ *   2) Local cache (for offline / build fallback)
+ *   3) AlQuran Cloud (last resort)
+ */
 export async function fetchSurah(num: number): Promise<SurahFull> {
-  // Try local cache first (server-only, build-time)
+  // 1) Try backend first (works server + client)
+  try {
+    const res = await fetch(`${API_BASE}/api/surah/${num}`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const json = (await res.json()) as { data: SurahFull };
+      return json.data;
+    }
+  } catch {
+    // fall through
+  }
+
+  // 2) Try local cached JSON (server-only)
   if (typeof window === "undefined") {
     try {
       const { readFile } = await import("node:fs/promises");
@@ -55,8 +76,9 @@ export async function fetchSurah(num: number): Promise<SurahFull> {
     }
   }
 
+  // 3) Final fallback: AlQuran Cloud direct
   const url = `${ALQURAN_API}/surah/${num}/editions/quran-uthmani,en.sahih`;
-  const maxAttempts = 8;
+  const maxAttempts = 5;
   let lastErr: unknown = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {

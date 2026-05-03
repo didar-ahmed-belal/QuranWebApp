@@ -11,17 +11,20 @@ import {
 } from "react";
 
 export type ArabicFont = "uthmani" | "amiri" | "scheherazade";
+export type ViewMode = "translation" | "reading";
 
 export interface Settings {
   arabicFont: ArabicFont;
-  arabicFontSize: number; // px
-  translationFontSize: number; // px
+  arabicFontSize: number;
+  translationFontSize: number;
+  viewMode: ViewMode;
 }
 
 const DEFAULTS: Settings = {
   arabicFont: "uthmani",
-  arabicFontSize: 32,
-  translationFontSize: 16,
+  arabicFontSize: 30,
+  translationFontSize: 17,
+  viewMode: "translation",
 };
 
 const STORAGE_KEY = "quran:settings";
@@ -30,6 +33,7 @@ interface SettingsContextValue extends Settings {
   setArabicFont: (f: ArabicFont) => void;
   setArabicFontSize: (n: number) => void;
   setTranslationFontSize: (n: number) => void;
+  setViewMode: (m: ViewMode) => void;
   reset: () => void;
 }
 
@@ -46,9 +50,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(raw) as Partial<Settings>;
         setSettings({ ...DEFAULTS, ...parsed });
       }
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     setHydrated(true);
   }, []);
 
@@ -56,23 +58,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [settings, hydrated]);
 
-  const setArabicFont = useCallback(
-    (f: ArabicFont) => setSettings((s) => ({ ...s, arabicFont: f })),
-    []
-  );
-  const setArabicFontSize = useCallback(
-    (n: number) => setSettings((s) => ({ ...s, arabicFontSize: n })),
-    []
-  );
-  const setTranslationFontSize = useCallback(
-    (n: number) => setSettings((s) => ({ ...s, translationFontSize: n })),
-    []
-  );
+  const setArabicFont = useCallback((f: ArabicFont) => setSettings((s) => ({ ...s, arabicFont: f })), []);
+  const setArabicFontSize = useCallback((n: number) => setSettings((s) => ({ ...s, arabicFontSize: n })), []);
+  const setTranslationFontSize = useCallback((n: number) => setSettings((s) => ({ ...s, translationFontSize: n })), []);
+  const setViewMode = useCallback((m: ViewMode) => setSettings((s) => ({ ...s, viewMode: m })), []);
   const reset = useCallback(() => setSettings(DEFAULTS), []);
 
   const value = useMemo<SettingsContextValue>(
@@ -81,14 +73,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setArabicFont,
       setArabicFontSize,
       setTranslationFontSize,
+      setViewMode,
       reset,
     }),
-    [settings, setArabicFont, setArabicFontSize, setTranslationFontSize, reset]
+    [settings, setArabicFont, setArabicFontSize, setTranslationFontSize, setViewMode, reset]
   );
 
-  return (
-    <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
-  );
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
 
 export function useSettings() {

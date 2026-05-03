@@ -7,9 +7,7 @@ import { UIProvider } from "@/lib/ui";
 import { BookmarksProvider } from "@/lib/bookmarks";
 import { ToastProvider, Toaster } from "@/lib/toast";
 import { TopHeader } from "@/components/TopHeader";
-import { IconSidebar } from "@/components/IconSidebar";
-import { SurahSidebar, MobileSurahDrawer } from "@/components/SurahSidebar";
-import { SettingsRail } from "@/components/SettingsRail";
+import { AppShell } from "@/components/AppShell";
 import { AudioPlayerBar } from "@/components/AudioPlayerBar";
 import { SearchModal } from "@/components/SearchModal";
 
@@ -57,14 +55,8 @@ export default function RootLayout({
                 <ToastProvider>
                   <div className="flex min-h-screen flex-col">
                     <TopHeader />
-                    <div className="flex flex-1">
-                      <IconSidebar />
-                      <SurahSidebar />
-                      <main className="min-w-0 flex-1">{children}</main>
-                      <SettingsRail />
-                    </div>
+                    <AppShell>{children}</AppShell>
                   </div>
-                  <MobileSurahDrawer />
                   <SearchModal />
                   <AudioPlayerBar />
                   <Toaster />
